@@ -19,9 +19,6 @@ buildscript {
   repositories {
     mavenCentral()
   }
-  dependencies {
-    classpath 'com.kenshoo:gradle-fpm:0.4'
-  }
   apply from: file('gradle/buildscript.gradle'), to: buildscript
 }
 
