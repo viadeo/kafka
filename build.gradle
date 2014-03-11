@@ -17,6 +17,9 @@ buildscript {
   repositories {
     mavenCentral()
   }
+  dependencies {
+    classpath 'com.kenshoo:gradle-fpm:0.4'
+  }
   apply from: file('gradle/buildscript.gradle'), to: buildscript
 }
 
@@ -120,6 +123,8 @@ tasks.create(name: "uploadArchivesAll", dependsOn: ['uploadCoreArchives_2_8_0', 
 
 project(':core') {
   println "Building project 'core' with Scala version $scalaVersion"
+  apply plugin: 'fpm-packaging'
+
 
   apply plugin: 'scala'
   archivesBaseName = "kafka_${baseScalaVersion}"
@@ -190,15 +195,50 @@ project(':core') {
     into "$buildDir/dependant-libs-${scalaVersion}"
   }
 
-  tasks.create(name: "releaseTarGz", dependsOn: configurations.archives.artifacts, type: Tar) { 
-    into "kafka_${baseScalaVersion}-${version}"
-    compression = Compression.GZIP 
-    from(project.file("../bin")) { into "bin/" }
+  packaging {
+      dependencies = ['java7-runtime-headless']
+      baseDir = "$buildDir/dist"
+      filesArgs = [
+          "bin=/usr/lib/kafka",
+          "libs=/usr/lib/kafka",
+          "config/producer.properties=/etc/kafka/producer.properties",
+          "config/consumer.properties=/etc/kafka/consumer.properties",
+          "config/log4j.properties=/etc/kafka/log4j.properties",
+          "config/server.properties=/etc/kafka/server.properties",
+          "config/zookeeper.properties=/etc/kafka/zookeeper.properties",
+          "config/tools-log4j.properties=/etc/kafka/tools-log4j.properties"
+      ]
+      extraOptions = [
+              "--name": "kafka",
+              "--exclude" : "*windows*",
+              "--post-install": "${rootProject.projectDir}/packaging/postinstall",
+              "--pre-uninstall": "${rootProject.projectDir}/packaging/preuninstall",
+              "--post-uninstall": "${rootProject.projectDir}/packaging/postuninstall",
+              "--deb-init": "${rootProject.projectDir}/packaging/debian/init.d/kafka",
+              "--deb-default": "${rootProject.projectDir}/packaging/debian/default/kafka",
+      ]
+      extraFlags = [
+              "--template-scripts"
+      ]
+      force = true
+  }
+
+  tasks.create(name: "releaseDeb", dependsOn:["distDir"], type:  com.kenshoo.watership.DebianTask)
+
+  tasks.create(name: "distDir", dependsOn: [configurations.archives.artifacts], type: Copy) {
+    from (project.file("../bin")) {into "bin/"}
     from(project.file("../config")) { into "config/" }
     from '../LICENSE'
     from '../NOTICE'
     from(configurations.runtime) { into("libs/") }
     from(configurations.archives.artifacts.files) { into("libs/") }
+    into "$buildDir/dist"
+  }
+
+  tasks.create(name: "releaseTarGz", dependsOn: ["distDir"], type: Tar) {
+    into "kafka_${baseScalaVersion}-${version}"
+    compression = Compression.GZIP
+    from "$buildDir/dist"
   }
   
   jar {
