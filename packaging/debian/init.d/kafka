@@ -26,6 +26,13 @@ CONFIG_DIR=${CONFIG_DIR:-/etc/$NAME}
 LIB_DIR=${LIB_DIR:-/usr/lib/$NAME/libs}
 BIN_DIR=${BIN_DIR:-/usr/lib/$NAME/bin}
 
+# If ulimit nofiles was set in $DEFAULT,
+# then change the limit for this process now.
+# This will not set nofiles higher than
+# system limit.
+if [ -n "$NOFILES_ULIMIT" ]; then
+    ulimit -n "$NOFILES_ULIMIT"
+fi
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
