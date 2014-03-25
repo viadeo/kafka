@@ -196,41 +196,38 @@ project(':core') {
     into "$buildDir/dependant-libs-${scalaVersion}"
   }
 
-  packaging {
-      dependencies = ['java7-runtime-headless']
-      baseDir = "$buildDir/dist"
-      filesArgs = [
-          "bin=/usr/lib/kafka",
-          "libs=/usr/lib/kafka",
-          "config/producer.properties=/etc/kafka/producer.properties",
-          "config/consumer.properties=/etc/kafka/consumer.properties",
-          "config/log4j.properties=/etc/kafka/log4j.properties",
-          "config/server.properties=/etc/kafka/server.properties",
-          "config/zookeeper.properties=/etc/kafka/zookeeper.properties",
-          "config/tools-log4j.properties=/etc/kafka/tools-log4j.properties"
-      ]
-      extraOptions = [
-              "--name": "kafka",
-              "--description": rootProject.description,
-              "--url": "https://kafka.apache.org",
-              "--license": "apache2",
-              "--maintainer": "Apache Kafka Developers <dev@kafka.apache.org>",
-              "--vendor": "Apache Kafka",
-              "--exclude": "*windows*",
-              "--category": "net",
-              "--post-install": "${rootProject.projectDir}/packaging/postinstall",
-              "--pre-uninstall": "${rootProject.projectDir}/packaging/preuninstall",
-              "--post-uninstall": "${rootProject.projectDir}/packaging/postuninstall",
-              "--deb-init": "${rootProject.projectDir}/packaging/debian/init.d/kafka",
-              "--deb-default": "${rootProject.projectDir}/packaging/debian/default/kafka",
-      ]
-      extraFlags = [
-              "--template-scripts"
-      ]
-      force = true
-  }
+  task releaseDeb(type:Exec, dependsOn:["distDir"]) {
 
-  tasks.create(name: "releaseDeb", dependsOn:["distDir"], type:  com.kenshoo.watership.DebianTask)
+    commandLine 'fpm',
+        "-t", "deb",
+        "-s", "dir",
+        "-C", "${buildDir}/dist",
+        "--force",
+        "--version", version,
+        "--name", "kafka",
+        "--description" , rootProject.description,
+        "--url", "https://kafka.apache.org",
+        "--license", "apache2",
+        "--maintainer", "Apache Kafka Developers <dev@kafka.apache.org>",
+        "--vendor", "Apache Kafka",
+        "--exclude", "*windows*",
+        "--category", "net",
+        "--post-install", "${rootProject.projectDir}/packaging/postinstall",
+        "--pre-uninstall", "${rootProject.projectDir}/packaging/preuninstall",
+        "--post-uninstall", "${rootProject.projectDir}/packaging/postuninstall",
+        "--deb-init", "${rootProject.projectDir}/packaging/debian/init.d/kafka",
+        "--deb-default", "${rootProject.projectDir}/packaging/debian/default/kafka",
+
+        // files to map
+        "bin=/usr/lib/kafka",
+        "libs=/usr/lib/kafka",
+        "config/producer.properties=/etc/kafka/producer.properties",
+        "config/consumer.properties=/etc/kafka/consumer.properties",
+        "config/log4j.properties=/etc/kafka/log4j.properties",
+        "config/server.properties=/etc/kafka/server.properties",
+        "config/zookeeper.properties=/etc/kafka/zookeeper.properties",
+        "config/tools-log4j.properties=/etc/kafka/tools-log4j.properties"
+  }
 
   tasks.create(name: "distDir", dependsOn: [configurations.archives.artifacts], type: Copy) {
     from (project.file("../bin")) {into "bin/"}
