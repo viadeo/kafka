@@ -128,7 +128,9 @@ project(':core') {
   apply plugin: 'fpm-packaging'
 
   apply plugin: 'scala'
-  archivesBaseName = "kafka_${baseScalaVersion}"
+
+  archivesBaseName = "${rootProject.name}_${baseScalaVersion}"
+  ext.distributionBaseName = "${archivesBaseName}-${version}"
 
   def (major, minor, trivial) = scalaVersion.tokenize('.')
 
@@ -195,14 +197,17 @@ project(':core') {
     into "$buildDir/dependant-libs-${scalaVersion}"
   }
 
+
+
   task releaseDeb(type:Exec, dependsOn:["distDir"]) {
 
     commandLine 'fpm',
         "-t", "deb",
         "-s", "dir",
-        "-C", "${buildDir}/dist",
+        "-C", "${project.distsDir}/${distributionBaseName}",
         "--force",
         "--version", version,
+        "--package", "${project.distsDir}/${distributionBaseName}.deb",
         "--name", "kafka",
         "--description" , rootProject.description,
         "--url", "https://kafka.apache.org",
@@ -235,13 +240,13 @@ project(':core') {
     from '../NOTICE'
     from(configurations.runtime) { into("libs/") }
     from(configurations.archives.artifacts.files) { into("libs/") }
-    into "$buildDir/dist"
+    into "${project.distsDir}/${distributionBaseName}"
   }
 
   tasks.create(name: "releaseTarGz", dependsOn: ["distDir"], type: Tar) {
-    into "kafka_${baseScalaVersion}-${version}"
+    into distributionBaseName
     compression = Compression.GZIP
-    from "$buildDir/dist"
+    from "${project.distsDir}/${distributionBaseName}"
   }
   
   jar {
