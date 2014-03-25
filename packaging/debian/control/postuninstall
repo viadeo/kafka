@@ -8,7 +8,7 @@ case "$1" in
     ;;
 
     purge)
-    	# Remove service
+        # Remove service
         update-rc.d kafka remove >/dev/null || true
 
         # Remove logs and data

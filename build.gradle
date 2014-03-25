@@ -122,8 +122,6 @@ tasks.create(name: "uploadArchivesAll", dependsOn: ['uploadCoreArchives_2_8_0', 
 
 project(':core') {
   println "Building project 'core' with Scala version $scalaVersion"
-  apply plugin: 'fpm-packaging'
-
   apply plugin: 'scala'
 
   archivesBaseName = "${rootProject.name}_${baseScalaVersion}"
@@ -213,9 +211,9 @@ project(':core') {
         "--vendor", "Apache Kafka",
         "--exclude", "*windows*",
         "--category", "net",
-        "--post-install", "${rootProject.projectDir}/packaging/postinstall",
-        "--pre-uninstall", "${rootProject.projectDir}/packaging/preuninstall",
-        "--post-uninstall", "${rootProject.projectDir}/packaging/postuninstall",
+        "--post-install", "${rootProject.projectDir}/packaging/debian/control/postinstall",
+        "--pre-uninstall", "${rootProject.projectDir}/packaging/debian/control/preuninstall",
+        "--post-uninstall", "${rootProject.projectDir}/packaging/debian/control/postuninstall",
         "--deb-init", "${rootProject.projectDir}/packaging/debian/init.d/kafka",
         "--deb-default", "${rootProject.projectDir}/packaging/debian/default/kafka",
 
