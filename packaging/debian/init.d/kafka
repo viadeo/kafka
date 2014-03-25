@@ -22,6 +22,11 @@ USER=kafka
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
+if ( [ -n $DISABLED ] && [ "$DISABLED" = "true" ] ) ; then
+  echo "service is disable in /etc/default/$NAME"
+  exit 0
+fi
+
 CONFIG_DIR=${CONFIG_DIR:-/etc/$NAME}
 LIB_DIR=${LIB_DIR:-/usr/lib/$NAME/libs}
 BIN_DIR=${BIN_DIR:-/usr/lib/$NAME/bin}
