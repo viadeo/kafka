@@ -126,6 +126,7 @@ project(':core') {
 
   archivesBaseName = "${rootProject.name}_${baseScalaVersion}"
   ext.distributionBaseName = "${archivesBaseName}-${version}"
+  ext.debIteration = "1"
 
   def (major, minor, trivial) = scalaVersion.tokenize('.')
 
@@ -193,7 +194,6 @@ project(':core') {
   }
 
 
-
   task releaseDeb(type:Exec, dependsOn:["distDir"]) {
 
     commandLine 'fpm',
@@ -202,7 +202,8 @@ project(':core') {
         "-C", "${project.distsDir}/${distributionBaseName}",
         "--force",
         "--version", version,
-        "--package", "${project.distsDir}/${distributionBaseName}.deb",
+        "--package", "${project.distsDir}/${distributionBaseName}-${debIteration}.deb",
+        "--iteration", debIteration,
         "--name", "kafka",
         "--description" , "'${rootProject.description}'",
         "--url", "https://kafka.apache.org",
